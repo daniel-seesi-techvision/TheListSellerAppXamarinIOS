@@ -7,6 +7,7 @@
         <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
         <TemplateGuid>{edc1b0fa-90cd-4038-8fad-98fe74adb368}</TemplateGuid>
         <OutputType>Exe</OutputType>
+        <LangVersion>9.0</LangVersion>
         <RootNamespace>TheListSellerAppXamariniOS</RootNamespace>
         <AssemblyName>TheListSellerAppXamariniOS</AssemblyName>
         <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
@@ -24,7 +25,7 @@
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
         <MtouchArch>x86_64</MtouchArch>
-        <MtouchLink>None</MtouchLink>
+        <MtouchLink>SdkOnly</MtouchLink>
         <MtouchDebug>true</MtouchDebug>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
@@ -48,6 +49,7 @@
         <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
         <CodesignKey>iPhone Developer</CodesignKey>
         <MtouchDebug>true</MtouchDebug>
+        <MtouchLink>None</MtouchLink>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
         <DebugType>none</DebugType>
@@ -58,6 +60,7 @@
         <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
         <MtouchArch>ARM64</MtouchArch>
         <CodesignKey>iPhone Developer</CodesignKey>
+        <MtouchLink>SdkOnly</MtouchLink>
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="System" />
@@ -69,6 +72,12 @@
     </ItemGroup>
     <ItemGroup>
       <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
+      <PackageReference Include="Xamarin.FFImageLoading">
+        <Version>2.4.11.982</Version>
+      </PackageReference>
+      <PackageReference Include="Xamarin.CommunityToolkit">
+        <Version>2.0.5</Version>
+      </PackageReference>
     </ItemGroup>
     <ItemGroup>
         <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json">
@@ -116,10 +125,15 @@
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Resources\" />
+        <Folder Include="Views\" />
+        <Folder Include="Constants\" />
+        <Folder Include="Views\Stores\" />
+        <Folder Include="Views\Products\" />
+        <Folder Include="Views\Reels\" />
+        <Folder Include="Extensions\" />
     </ItemGroup>
     <ItemGroup>
         <InterfaceDefinition Include="LaunchScreen.storyboard" />
-        <InterfaceDefinition Include="Main.storyboard" />
     </ItemGroup>
     <ItemGroup>
         <None Include="Info.plist" />
@@ -128,11 +142,41 @@
     <ItemGroup>
         <Compile Include="Main.cs" />
         <Compile Include="AppDelegate.cs" />
-        <Compile Include="SceneDelegate.cs" />
-        <Compile Include="ViewController.cs" />
-        <Compile Include="ViewController.designer.cs">
-            <DependentUpon>ViewController.cs</DependentUpon>
-        </Compile>
+        <Compile Include="Views\MainNavigationController.cs" />
+        <Compile Include="Constants\StringConstants.cs" />
+        <Compile Include="Views\Store\StoreViewController.cs" />
+        <Compile Include="Views\Reels\ReelCollectionView.cs" />
+        <Compile Include="Views\Reels\Reel.cs" />
+        <Compile Include="Views\Products\Product.cs" />
+        <Compile Include="Views\Reels\ReelCamera.cs" />
+        <Compile Include="Extensions\UIButtonExtensions.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <BundleResource Include="Resources\hanger-icon.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </BundleResource>
+      <BundleResource Include="Resources\placeholder.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </BundleResource>
+      <BundleResource Include="Resources\switch-camera.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </BundleResource>
+      <BundleResource Include="Resources\flash.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </BundleResource>
+      <BundleResource Include="Resources\shutter.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </BundleResource>
+      <BundleResource Include="Resources\close-circle.png" />
+      <BundleResource Include="Resources\flash-auto.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </BundleResource>
+      <BundleResource Include="Resources\flash-off.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </BundleResource>
+      <BundleResource Include="Resources\add-image.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </BundleResource>
     </ItemGroup>
     <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>
