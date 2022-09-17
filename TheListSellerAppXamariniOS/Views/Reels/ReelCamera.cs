@@ -8,20 +8,53 @@ using FFImageLoading.Extensions;
 using CoreGraphics;
 using TheListSellerAppXamariniOS.Extensions;
 using static TheListSellerAppXamariniOS.Constants.StringConstants;
+using static TheListSellerAppXamariniOS.Constants.Dimensions;
+using CoreFoundation;
+using System.Diagnostics;
+using System.Linq;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace TheListSellerAppXamariniOS.Views.Reels
 {
-    public class ReelCameraViewController : UIViewController
+    public class ReelCameraViewController : UIViewController, IAVCapturePhotoCaptureDelegate, INotifyPropertyChanged
     {
-        private UIButton closeButton, shutterButton, switchCameraButton, flashButton;
+        #region Fields
+
+        UIButton closeButton, shutterButton, switchCameraButton, flashButton;
+        UIImageView flashImageView;
         AVCaptureSession cameraSession;
-        AVCapturePhotoOutput output;
+        AVCaptureDeviceInput captureInput;
+        AVCapturePhotoOutput captureOutput;
         AVCaptureVideoPreviewLayer cameraPreveiwLayer;
+        readonly AVCaptureDeviceDiscoverySession videoDeviceDiscoverySession = AVCaptureDeviceDiscoverySession.Create(
+            new AVCaptureDeviceType[] { AVCaptureDeviceType.BuiltInWideAngleCamera, AVCaptureDeviceType.BuiltInDualCamera },
+            AVMediaType.Video,
+            AVCaptureDevicePosition.Unspecified);
+        AVCaptureFlashMode _currentFlashMode;
         UIView cameraRootView;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        #endregion
+
+        AVCaptureFlashMode CurrentFlashMode
+        {
+            get => _currentFlashMode;
+            set
+            {
+                if (_currentFlashMode == value)
+                    return;
+
+                _currentFlashMode = value;
+                OnPropertyChanged();
+            }
+        }
 
         public ReelCameraViewController()
         {
         }
+
+        #region Life Cycle
 
         public override void ViewDidLoad()
         {
@@ -46,33 +79,48 @@ namespace TheListSellerAppXamariniOS.Views.Reels
 
         public override void ViewDidLayoutSubviews()
         {
-            base.ViewDidLayoutSubviews();            
+            base.ViewDidLayoutSubviews();
             cameraPreveiwLayer.Frame = cameraRootView.Bounds;
         }
+        #endregion
 
         #region Events
 
         private void CloseButton_TouchUpInside(object sender, EventArgs e) => DismissViewController(true, null);
 
+        private void ShutterButton_TouchUpInside(object sender, EventArgs e)
+        {
+            var captureSettings = AVCapturePhotoSettings.Create();
+            captureSettings.FlashMode = CurrentFlashMode;
+            captureOutput.CapturePhoto(captureSettings, this);
+        }
+
+        private void SwitchCameraButton_TouchUpInside(object sender, EventArgs e) => SwitchCamera();
+
+        private void FlashButton_TouchUpInside(object sender, EventArgs e) => ToggleFlashMode();
+
+        private void OnPropertyChangedHere(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(CurrentFlashMode))
+            {
+                InvokeOnMainThread(() => UpdateFlashModeUI());
+            }
+
+        }
         #endregion
 
         #region Methods
         void SetupUI()
         {
             View.BackgroundColor = UIColor.Black;
+
             var margins = View.LayoutMarginsGuide;
-            
-            cameraRootView = new UIView();
-            View.AddSubview(cameraRootView);
-            cameraRootView.TranslatesAutoresizingMaskIntoConstraints = false;            
-            cameraRootView.TopAnchor.ConstraintEqualTo(margins.TopAnchor,10).Active = true;
-            cameraRootView.LeadingAnchor.ConstraintEqualTo(View.LeadingAnchor).Active = true;
-            cameraRootView.TrailingAnchor.ConstraintEqualTo(View.TrailingAnchor).Active = true;
-            cameraRootView.BottomAnchor.ConstraintEqualTo(View.BottomAnchor, -80).Active = true;
+
+            cameraRootView = View.CreateCameraRootView();
 
             shutterButton = new UIButton() { TintColor = UIColor.White, ContentMode = UIViewContentMode.ScaleAspectFill };
             cameraRootView.AddSubview(shutterButton);
-            shutterButton.SetBackgroundImage(new UIImage(SHUTTER),UIControlState.Normal);
+            shutterButton.SetBackgroundImage(new UIImage(SHUTTER), UIControlState.Normal);
             shutterButton.TranslatesAutoresizingMaskIntoConstraints = false;
             shutterButton.Layer.CornerRadius = 50;
             shutterButton.HeightAnchor.ConstraintEqualTo(100).Active = true;
@@ -82,7 +130,7 @@ namespace TheListSellerAppXamariniOS.Views.Reels
 
             switchCameraButton = new UIButton() { BackgroundColor = UIColor.Black, Alpha = 0.5F, TintColor = UIColor.White };
             cameraRootView.AddSubview(switchCameraButton);
-            switchCameraButton.SetInsideImage(SWITCH_CAMERA);
+            _ = switchCameraButton.SetInsideImage(SWITCH_CAMERA);
             switchCameraButton.TranslatesAutoresizingMaskIntoConstraints = false;
             switchCameraButton.Layer.CornerRadius = 25;
             switchCameraButton.HeightAnchor.ConstraintEqualTo(shutterButton.HeightAnchor, 0.5F).Active = true;
@@ -92,7 +140,8 @@ namespace TheListSellerAppXamariniOS.Views.Reels
 
             flashButton = new UIButton() { BackgroundColor = UIColor.Black, Alpha = 0.5F, TintColor = UIColor.White, ContentMode = UIViewContentMode.Center };
             cameraRootView.AddSubview(flashButton);
-            flashButton.SetInsideImage(FLASH);
+            CurrentFlashMode = AVCaptureFlashMode.On;
+            flashImageView = flashButton.SetInsideImage(FLASH);
             flashButton.TranslatesAutoresizingMaskIntoConstraints = false;
             flashButton.Layer.CornerRadius = 25;
             flashButton.HeightAnchor.ConstraintEqualTo(shutterButton.HeightAnchor, 0.5F).Active = true;
@@ -100,16 +149,9 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             flashButton.CenterYAnchor.ConstraintEqualTo(shutterButton.CenterYAnchor).Active = true;
             flashButton.TrailingAnchor.ConstraintEqualTo(shutterButton.LeadingAnchor, -20).Active = true;
 
-            closeButton = new UIButton() { BackgroundColor = UIColor.Black, Alpha = 0.5F, ContentMode = UIViewContentMode.Center };
-            cameraRootView.AddSubview(closeButton);
-            closeButton.SetInsideImage(CLOSE);
-            closeButton.ContentMode = UIViewContentMode.ScaleToFill;
-            closeButton.Layer.CornerRadius = 25;
-            closeButton.TranslatesAutoresizingMaskIntoConstraints = false;
-            closeButton.TopAnchor.ConstraintEqualTo(cameraRootView.TopAnchor, 20).Active = true;
-            closeButton.TrailingAnchor.ConstraintEqualTo(cameraRootView.TrailingAnchor, -20).Active = true;
-            closeButton.HeightAnchor.ConstraintEqualTo(shutterButton.HeightAnchor, 0.5F).Active = true;
-            closeButton.WidthAnchor.ConstraintEqualTo(shutterButton.HeightAnchor, 0.5F).Active = true;
+            closeButton = cameraRootView.CreateCloseButton();
+
+            #region Views below Camera Root View
 
             var upperInstructionLabel = new UILabel()
             {
@@ -154,7 +196,6 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             bottomInstructionLabel.TrailingAnchor.ConstraintEqualTo(margins.TrailingAnchor).Active = true;
             bottomInstructionLabel.BottomAnchor.ConstraintEqualTo(margins.BottomAnchor).Active = true;
 
-
             var addImageButton = new UIButton() { TintColor = UIColor.White, ContentMode = UIViewContentMode.ScaleAspectFill };
             View.AddSubview(addImageButton);
             addImageButton.SetBackgroundImage(new UIImage(ADD_IMAGE), UIControlState.Normal);
@@ -164,6 +205,8 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             addImageButton.WidthAnchor.ConstraintEqualTo(shutterButton.HeightAnchor, 0.5F).Active = true;
             addImageButton.LeadingAnchor.ConstraintEqualTo(margins.LeadingAnchor).Active = true;
             addImageButton.CenterYAnchor.ConstraintEqualTo(bottomInstructionLabel.CenterYAnchor).Active = true;
+            #endregion
+
         }
 
         void checkCameraPermission()
@@ -176,11 +219,11 @@ namespace TheListSellerAppXamariniOS.Views.Reels
                     {
                         if (!granted)
                             return;
-                        InvokeOnMainThread(() => SetUpCamera());
+                        InvokeOnMainThread(() => InitCamera(AVCaptureDevicePosition.Back));
                     });
                     break;
                 case AVAuthorizationStatus.Authorized:
-                    SetUpCamera();
+                    InitCamera(AVCaptureDevicePosition.Back);
                     break;
                 case AVAuthorizationStatus.Restricted:
                     break;
@@ -192,54 +235,192 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             }
         }
 
-        void SetUpCamera()
+        void InitCamera(AVCaptureDevicePosition preferredPosition)
         {
             try
             {
-                var session = new AVCaptureSession();
+                AVCaptureDeviceType preferredDeviceType = AVCaptureDeviceType.BuiltInDualCamera;
 
-                cameraPreveiwLayer = new AVCaptureVideoPreviewLayer(session)
+                switch (preferredPosition)
                 {
-                    Frame = cameraRootView.Layer.Bounds,
-                    VideoGravity = AVLayerVideoGravity.ResizeAspectFill,
-                    CornerRadius = 10F
-                };
+                    case AVCaptureDevicePosition.Unspecified:
+                        Debug.WriteLine("Camera Position is Unspecified", "Switch Camera");
+                        break;
+                    case AVCaptureDevicePosition.Front:
+                        preferredDeviceType = AVCaptureDeviceType.BuiltInWideAngleCamera;
+                        break;
+                    case AVCaptureDevicePosition.Back:
+                        preferredDeviceType = AVCaptureDeviceType.BuiltInDualCamera;
+                        break;
+                }
 
-
-                var captureDevice = AVCaptureDevice.GetDefaultDevice(AVCaptureDeviceType.BuiltInWideAngleCamera, AVMediaTypes.Video, AVCaptureDevicePosition.Front);
-                if (captureDevice == null)
-                    // alertService.ShowToast("Sorry, no front camera found");
-                    return;
-
-                var input = AVCaptureDeviceInput.FromDevice(captureDevice);
-                if (session.CanAddInput(input))
-                    session.AddInput(input);
-
-                output = new AVCapturePhotoOutput();
-                if (session.CanAddOutput(output))
-                    session.AddOutput(output);
-
-
-                cameraPreveiwLayer.Session = session;
-                cameraRootView.Layer.InsertSublayerBelow(cameraPreveiwLayer,shutterButton.Layer);
-                session.StartRunning();
-                cameraSession = session;
+                SetCameraSession(preferredPosition, preferredDeviceType);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message); 
+                Console.WriteLine(ex.Message);
             }
+        }
+
+        void SwitchCamera()
+        {
+            try
+            {
+                var currentVideoDevice = captureInput.Device;
+                var currentPosition = currentVideoDevice.Position;
+                AVCaptureDevicePosition preferredPosition = AVCaptureDevicePosition.Unspecified;
+                AVCaptureDeviceType preferredDeviceType = AVCaptureDeviceType.BuiltInWideAngleCamera;
+                switch (currentPosition)
+                {
+                    case AVCaptureDevicePosition.Unspecified:
+                        Debug.WriteLine("Camera Position is Unspecified", "Switch Camera");
+                        break;
+                    case AVCaptureDevicePosition.Front:
+                        preferredPosition = AVCaptureDevicePosition.Back;
+                        preferredDeviceType = AVCaptureDeviceType.BuiltInDualCamera;
+                        break;
+                    case AVCaptureDevicePosition.Back:
+                        preferredPosition = AVCaptureDevicePosition.Front;
+                        preferredDeviceType = AVCaptureDeviceType.BuiltInWideAngleCamera;
+                        break;
+                }
+
+                SetCameraSession(preferredPosition, preferredDeviceType);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        void SetCameraSession(AVCaptureDevicePosition preferredPosition, AVCaptureDeviceType preferredDeviceType)
+        {
+            var devices = videoDeviceDiscoverySession.Devices;
+            AVCaptureDevice newDevice = null;
+
+            // First, look for a device with both the preferred position and device type.
+            foreach (var device in devices)
+            {
+                if (device.Position == preferredPosition && device.DeviceType.GetConstant() == preferredDeviceType.GetConstant())
+                {
+                    newDevice = device;
+                    break;
+                }
+            }
+
+            // Otherwise, look for a device with only the preferred position.
+            if (newDevice == null)
+            {
+                foreach (var device in devices)
+                {
+                    if (device.Position == preferredPosition)
+                    {
+                        newDevice = device;
+                        break;
+                    }
+                }
+            }
+
+            if (newDevice == null)
+                return;
+
+            //var captureDevice = AVCaptureDevice.GetDefaultDevice(preferredDeviceType, AVMediaTypes.Video, preferredPosition);
+            //if (captureDevice == null)
+            //    return;
+            var session = new AVCaptureSession();
+
+            bool layerIsAlreadyInView = cameraRootView.Layer.Sublayers.Any(mn => mn == cameraPreveiwLayer);
+            if (layerIsAlreadyInView)
+                cameraPreveiwLayer.RemoveFromSuperLayer();
+
+            cameraPreveiwLayer = new AVCaptureVideoPreviewLayer(session)
+            {
+                Frame = cameraRootView.Layer.Bounds,
+                VideoGravity = AVLayerVideoGravity.ResizeAspectFill,
+                CornerRadius = CAMERA_ROOT_VIEW_CORNER_RADIUS
+            };
+
+
+            cameraRootView.Layer.InsertSublayerBelow(cameraPreveiwLayer, shutterButton.Layer);
+
+            if (captureInput is not null)
+                session.RemoveInput(captureInput);
+
+            captureInput = AVCaptureDeviceInput.FromDevice(newDevice);
+            if (session.CanAddInput(captureInput))
+                session.AddInput(captureInput);
+
+            if (captureOutput is not null)
+                session.RemoveOutput(captureOutput);
+
+            captureOutput = new AVCapturePhotoOutput();
+            if (session.CanAddOutput(captureOutput))
+                session.AddOutput(captureOutput);
+
+
+            cameraPreveiwLayer.Session = session;
+            cameraPreveiwLayer.Connection.AutomaticallyAdjustsVideoMirroring = false;
+            cameraPreveiwLayer.Mirrored = false;
+
+            session.StartRunning();
+            cameraSession = session;
+        }
+
+        void ToggleFlashMode()
+        {
+            if (CurrentFlashMode == AVCaptureFlashMode.Off)
+                CurrentFlashMode = AVCaptureFlashMode.On;
+            else if (CurrentFlashMode == AVCaptureFlashMode.On)
+                CurrentFlashMode = AVCaptureFlashMode.Auto;
+            else
+                CurrentFlashMode = AVCaptureFlashMode.Off;
+
+        }
+
+        void UpdateFlashModeUI()
+        {
+            flashImageView.RemoveFromSuperview();
+            flashImageView = CurrentFlashMode switch
+            {
+                AVCaptureFlashMode.Auto => flashButton.SetInsideImage(FLASH_AUTO),
+                AVCaptureFlashMode.On => flashButton.SetInsideImage(FLASH),
+                _ => flashButton.SetInsideImage(FLASH_OFF),
+            };
+        }
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
         void SubscribeToEvents()
         {
             closeButton.TouchUpInside += CloseButton_TouchUpInside;
+            shutterButton.TouchUpInside += ShutterButton_TouchUpInside;
+            switchCameraButton.TouchUpInside += SwitchCameraButton_TouchUpInside;
+            flashButton.TouchUpInside += FlashButton_TouchUpInside;
+            PropertyChanged += OnPropertyChangedHere;
         }
 
         void UnSubscribeFromEvents()
         {
             closeButton.TouchUpInside -= CloseButton_TouchUpInside;
+            shutterButton.TouchUpInside -= ShutterButton_TouchUpInside;
+            switchCameraButton.TouchUpInside -= SwitchCameraButton_TouchUpInside;
+            flashButton.TouchUpInside -= FlashButton_TouchUpInside;
+            PropertyChanged -= OnPropertyChangedHere;
+        }
 
+        [Export("captureOutput:didFinishProcessingPhoto:error:")]
+        public void DidFinishProcessingPhoto(AVCapturePhotoOutput output, AVCapturePhoto photo, NSError error)
+        {
+            var data = photo.FileDataRepresentation;
+            InvokeOnMainThread(() =>
+            {
+                var controller = new ReelEditViewController(data);
+                controller.ModalPresentationStyle = UIModalPresentationStyle.FullScreen;
+                PresentViewController(controller, true, null);
+            });
         }
         #endregion
     }

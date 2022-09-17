@@ -3,6 +3,8 @@ namespace TheListSellerAppXamariniOS.Constants
 {
     public static class StringConstants
     {
+        public const string DATABASE_FILENAME = "database.sqlite";
+
         public const string MAIN_PAGE_TITLE = "Store";
         public const string REEL_CELL_ID = "RellCell";
 

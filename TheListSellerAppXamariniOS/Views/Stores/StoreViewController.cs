@@ -98,11 +98,7 @@ namespace TheListSellerAppXamariniOS.Views.Store
                 TintColor = UIColor.Label
             };
             trayButton.SetBackgroundImage(trayImage,UIControlState.Normal);
-
-            sellerInfoRootView = new UIView();
-            sellerInfoRootView.Layer.BorderWidth = 1f;
-            sellerInfoRootView.Layer.BorderColor = new UIColor(red: 0.922f, green: 0.922f, blue: 0.922f, alpha: 1).CGColor;
-
+            
             View.AddSubviews(titleLabel,gearButton,videoButton,trayButton);
 
             View.BackgroundColor = UIColor.SystemBackground;
@@ -135,6 +131,10 @@ namespace TheListSellerAppXamariniOS.Views.Store
             #endregion
 
             #region Seller Info, Feed and Products
+            sellerInfoRootView = new UIView();
+            sellerInfoRootView.Layer.BorderWidth = 1f;
+            sellerInfoRootView.Layer.BorderColor = UIColor.LightGray.CGColor;
+            sellerInfoRootView.Alpha = 0.5F;
             View.AddSubview(sellerInfoRootView);
             sellerInfoRootView.TranslatesAutoresizingMaskIntoConstraints = false;
             sellerInfoRootView.TopAnchor.ConstraintEqualTo(titleLabel.BottomAnchor,10).Active = true;
