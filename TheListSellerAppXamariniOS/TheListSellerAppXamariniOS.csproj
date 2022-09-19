@@ -197,6 +197,7 @@
 		<Compile Include="Extensions\StringExtensions.cs" />
 		<Compile Include="Services\IAlertService.cs" />
 		<Compile Include="Services\AlertService.cs" />
+		<Compile Include="Extensions\ObjectExtensions.cs" />
 	</ItemGroup>
 	<ItemGroup>
 		<BundleResource Include="Resources\placeholder.png">

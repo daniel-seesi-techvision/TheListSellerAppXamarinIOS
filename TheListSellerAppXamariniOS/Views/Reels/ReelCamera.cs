@@ -77,9 +77,9 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             UIApplication.SharedApplication.StatusBarStyle = UIStatusBarStyle.Default;
         }
 
-        public override void ViewDidLayoutSubviews()
+        public override void ViewDidAppear(bool animated)
         {
-            base.ViewDidLayoutSubviews();
+            base.ViewDidAppear(animated);
             cameraPreveiwLayer.Frame = cameraRootView.Bounds;
         }
 
@@ -163,6 +163,8 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             flashButton.TrailingAnchor.ConstraintEqualTo(shutterButton.LeadingAnchor, -20).Active = true;
 
             closeButton = cameraRootView.CreateCloseButton();
+
+            cameraPreveiwLayer = new AVCaptureVideoPreviewLayer();
 
             #region Views below Camera Root View
 

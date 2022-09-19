@@ -93,6 +93,10 @@ namespace TheListSellerAppXamariniOS.Views.Reels
                     currentReel.LinkedProducts = productListViewController.LinkedProducts;
                     UpdateLinkedProductLabelText(linkProductTitleButton, linkProductionLabelText);
                     UpdateUploadButtonState();
+                    if (collectionView is not null)
+                    {
+                        collectionView.RemoveFromSuperview();
+                    }
                     SetupProductCollection();
                 }
             };
@@ -114,11 +118,6 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             UIApplication.SharedApplication.StatusBarStyle = UIStatusBarStyle.Default;
         }
 
-        public override void ViewDidAppear(bool animated)
-        {
-            base.ViewDidAppear(animated);
-            SetupProductCollection();
-        }
         #endregion
 
         #region Events
