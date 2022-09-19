@@ -246,12 +246,6 @@ namespace TheListSellerAppXamariniOS.Views.Products
 
             productListTable.ReloadData();
         }
-
-        [Export("tableView:didEndEditingRowAtIndexPath:")]
-        public void DidEndEditing(UITableView tableView, NSIndexPath indexPath)
-        {
-            throw new System.NotImplementedException();
-        }
         #endregion
     }
 }
