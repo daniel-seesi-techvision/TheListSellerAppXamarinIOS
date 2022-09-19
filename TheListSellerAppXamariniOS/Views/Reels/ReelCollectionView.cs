@@ -6,6 +6,7 @@ using FFImageLoading;
 using Foundation;
 using TheListSellerAppXamariniOS.Constants;
 using UIKit;
+using static TheListSellerAppXamariniOS.Constants.Colors;
 
 namespace TheListSellerAppXamariniOS.Views.Reels
 {
@@ -16,7 +17,7 @@ namespace TheListSellerAppXamariniOS.Views.Reels
         {
             var lay = layout as UICollectionViewFlowLayout;
             var widthPerItem = (collectionView.Frame.Width / 2) - lay.MinimumInteritemSpacing;
-            return new CGSize(widthPerItem, 150);
+            return new CGSize(widthPerItem, 200);
         }
     }
 
@@ -60,11 +61,11 @@ namespace TheListSellerAppXamariniOS.Views.Reels
 
         void SetUpView()
         {
-            BackgroundColor = UIColor.Label;
+            BackgroundColor = TransparentView;
             imageView = new UIImageView();
 
             AddSubview(imageView);
-
+            imageView.ClipsToBounds = true;
             imageView.TranslatesAutoresizingMaskIntoConstraints = false;
             imageView.ContentMode = UIViewContentMode.ScaleAspectFill;
             imageView.TopAnchor.ConstraintEqualTo(this.TopAnchor).Active = true;
@@ -78,7 +79,6 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             ImageService.Instance.LoadFile(imageUrl)
                               .LoadingPlaceholder("placeholder.png")
                               .Retry(3, 2000)
-                              .WithCache(FFImageLoading.Cache.CacheType.Disk)
                               .Into(imageView);
         }
 

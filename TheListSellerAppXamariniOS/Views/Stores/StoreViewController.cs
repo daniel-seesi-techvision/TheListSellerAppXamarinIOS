@@ -7,6 +7,7 @@ using static TheListSellerAppXamariniOS.Constants.StringConstants;
 using static TheListSellerAppXamariniOS.Constants.Dimensions;
 using TheListSellerAppXamariniOS.DI;
 using TheListSellerAppXamariniOS.Data.Repository;
+using System.Linq;
 
 namespace TheListSellerAppXamariniOS.Views.Store
 {
@@ -56,6 +57,7 @@ namespace TheListSellerAppXamariniOS.Views.Store
             PresentViewController(controller, true, null);
         }
 
+        // TODO In future use custom UITabView  
         private void ButtonTouchUpInsided(object sender, EventArgs e)
         {
             var button = sender as UIButton;
@@ -63,11 +65,13 @@ namespace TheListSellerAppXamariniOS.Views.Store
             {
                 myFeedButton.SetTitleColor(UIColor.Black, UIControlState.Normal);
                 myProductButton.SetTitleColor(UIColor.LightGray, UIControlState.Normal);
+                collectionRootView.Hidden = false;
             }
             else
             {
                 myProductButton.SetTitleColor(UIColor.Black, UIControlState.Normal);
                 myFeedButton.SetTitleColor(UIColor.LightGray, UIControlState.Normal);
+                collectionRootView.Hidden = true;
             }
 
         }
@@ -122,7 +126,7 @@ namespace TheListSellerAppXamariniOS.Views.Store
             sellerInfoRootView = new UIView();
             sellerInfoRootView.Layer.BorderWidth = 1f;
             sellerInfoRootView.Layer.BorderColor = UIColor.LightGray.CGColor;
-            sellerInfoRootView.Alpha = 0.5F;
+            //sellerInfoRootView.Alpha = 0.5F;
             View.AddSubview(sellerInfoRootView);
             sellerInfoRootView.TranslatesAutoresizingMaskIntoConstraints = false;
             sellerInfoRootView.TopAnchor.ConstraintEqualTo(titleLabel.BottomAnchor, 10).Active = true;
@@ -162,7 +166,7 @@ namespace TheListSellerAppXamariniOS.Views.Store
             collectionRootView.TopAnchor.ConstraintEqualTo(sellerInfoRootView.BottomAnchor).Active = true;
             collectionRootView.LeadingAnchor.ConstraintEqualTo(View.LeadingAnchor).Active = true;
             collectionRootView.TrailingAnchor.ConstraintEqualTo(View.TrailingAnchor).Active = true;
-            collectionRootView.BottomAnchor.ConstraintEqualTo(View.BottomAnchor).Active = true;
+            collectionRootView.BottomAnchor.ConstraintEqualTo(margins.BottomAnchor).Active = true;
             #endregion
 
             #region Mission Control
@@ -242,10 +246,11 @@ namespace TheListSellerAppXamariniOS.Views.Store
         {
             var collectionLayout = new UICollectionViewFlowLayout();
             collectionLayout.SectionInset = new UIEdgeInsets(0, 0, 0, 0);
+            collectionLayout.MinimumInteritemSpacing = 1F;
             var collectionView = new UICollectionView(collectionRootView.Bounds, collectionLayout);
 
             // Fetch Reel from database
-            var reels = reelRepo.FindAll();
+            var reels = reelRepo.FindAll().OrderByDescending(m=>m.CreateAt).ToList();
 
             if (reels.Count is 0)
             {

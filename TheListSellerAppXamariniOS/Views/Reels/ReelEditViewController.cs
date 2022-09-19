@@ -260,7 +260,7 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             previewTitleButton = SetupFloatingButtonTitle(previewButton, "View Preview");
             previewButton.TopAnchor.ConstraintEqualTo(linkProductButton.BottomAnchor, 15).Active = true;
 
-            productCollectionRootView = new UIView();
+            productCollectionRootView = new UIView() { BackgroundColor = TransparentView };
             cameraRootView.AddSubview(productCollectionRootView);
             productCollectionRootView.TranslatesAutoresizingMaskIntoConstraints = false;
             productCollectionRootView.LeadingAnchor.ConstraintEqualTo(margins.LeadingAnchor).Active = true;
@@ -463,7 +463,7 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             var collectionLayout = new UICollectionViewFlowLayout();
             collectionLayout.SectionInset = new UIEdgeInsets(0, 0, 0, 0);
             collectionLayout.ScrollDirection = UICollectionViewScrollDirection.Horizontal;
-            collectionView = new UICollectionView(productCollectionRootView.Bounds, collectionLayout);
+            collectionView = new UICollectionView(productCollectionRootView.Bounds, collectionLayout) { BackgroundColor = TransparentView };
 
             collectionView.Delegate = this;
             collectionView.DataSource = this;
