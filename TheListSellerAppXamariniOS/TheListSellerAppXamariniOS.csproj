@@ -28,6 +28,7 @@
 		<MtouchArch>x86_64</MtouchArch>
 		<MtouchLink>SdkOnly</MtouchLink>
 		<MtouchDebug>true</MtouchDebug>
+		<MtouchFastDev>true</MtouchFastDev>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
 		<DebugType>none</DebugType>
@@ -72,6 +73,9 @@
 		<Reference Include="System.Numerics.Vectors" />
 	</ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="Acr.UserDialogs">
+			<Version>7.0.35</Version>
+		</PackageReference>
 		<PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
 		<PackageReference Include="Xamarin.FFImageLoading">
 			<Version>2.4.11.982</Version>
@@ -81,7 +85,16 @@
 			<Version>2.0.5</Version>
 		</PackageReference>
 		<PackageReference Include="Unity">
-		  <Version>5.11.10</Version>
+			<Version>5.11.10</Version>
+		</PackageReference>
+		<PackageReference Include="System.Net.Http">
+			<Version>4.3.4</Version>
+		</PackageReference>
+		<PackageReference Include="Newtonsoft.Json">
+			<Version>13.0.1</Version>
+		</PackageReference>
+		<PackageReference Include="Xam.Plugin.Connectivity">
+			<Version>3.2.0</Version>
 		</PackageReference>
 	</ItemGroup>
 	<ItemGroup>
@@ -139,6 +152,9 @@
 		<Folder Include="Data\Database\" />
 		<Folder Include="Data\Repository\" />
 		<Folder Include="DI\" />
+		<Folder Include="Services\" />
+		<Folder Include="Views\Products\" />
+		<Folder Include="Views\Custom\" />
 	</ItemGroup>
 	<ItemGroup>
 		<InterfaceDefinition Include="LaunchScreen.storyboard" />
@@ -159,18 +175,30 @@
 		<Compile Include="Data\Models\Product.cs" />
 		<Compile Include="Data\Models\Reel.cs" />
 		<Compile Include="Data\Database\AppDbContext.cs" />
-		<Compile Include="Data\Repository\Repository.cs" />
+		<Compile Include="Data\Repository\DataRepository.cs" />
 		<Compile Include="Data\Repository\IDataRepository.cs" />
 		<Compile Include="Data\Models\ReelLinkedProduct.cs" />
 		<Compile Include="DI\IoC.cs" />
 		<Compile Include="Views\Reels\ReelEditViewController.cs" />
 		<Compile Include="Constants\Dimensions.cs" />
 		<Compile Include="Extensions\UIViewExtensions.cs" />
+		<Compile Include="Views\Reels\ReelDescriptionModal.cs" />
+		<Compile Include="Constants\NotificationConstants.cs" />
+		<Compile Include="Constants\UIColorExtensions.cs" />
+		<Compile Include="Extensions\ReelExtensions.cs" />
+		<Compile Include="Services\RequestProvider.cs" />
+		<Compile Include="Services\NetworkService.cs" />
+		<Compile Include="Services\INetworkService.cs" />
+		<Compile Include="Services\RequestModel.cs" />
+		<Compile Include="Services\IRequestProvider.cs" />
+		<Compile Include="Views\Products\ProductListViewController.cs" />
+		<Compile Include="Views\Custom\CheckBox.cs" />
+		<Compile Include="Views\Products\ProductCellView.cs" />
+		<Compile Include="Extensions\StringExtensions.cs" />
+		<Compile Include="Services\IAlertService.cs" />
+		<Compile Include="Services\AlertService.cs" />
 	</ItemGroup>
 	<ItemGroup>
-		<BundleResource Include="Resources\hanger-icon.png">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</BundleResource>
 		<BundleResource Include="Resources\placeholder.png">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</BundleResource>
@@ -193,6 +221,40 @@
 		<BundleResource Include="Resources\add-image.png">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</BundleResource>
+		<BundleResource Include="Resources\description.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</BundleResource>
+		<BundleResource Include="Resources\eye.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</BundleResource>
+		<BundleResource Include="Resources\tag.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</BundleResource>
+		<BundleResource Include="Resources\video.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</BundleResource>
+		<BundleResource Include="Resources\inbox.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</BundleResource>
+		<BundleResource Include="Resources\settings.png" />
+		<BundleResource Include="Resources\hanger-icon.png" />
+		<BundleResource Include="Resources\package.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</BundleResource>
+		<BundleResource Include="Resources\request.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</BundleResource>
+		<BundleResource Include="Resources\home.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</BundleResource>
+		<BundleResource Include="Resources\checked.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</BundleResource>
+		<BundleResource Include="Resources\small-checked.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</BundleResource>
+		<BundleResource Include="Resources\small-black-checked.png" />
+		<BundleResource Include="Resources\close-black.png" />
 	</ItemGroup>
 	<Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>

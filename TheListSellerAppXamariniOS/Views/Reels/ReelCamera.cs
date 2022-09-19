@@ -31,9 +31,9 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             new AVCaptureDeviceType[] { AVCaptureDeviceType.BuiltInWideAngleCamera, AVCaptureDeviceType.BuiltInDualCamera },
             AVMediaType.Video,
             AVCaptureDevicePosition.Unspecified);
-        AVCaptureFlashMode _currentFlashMode;
         UIView cameraRootView;
         public event PropertyChangedEventHandler PropertyChanged;
+        AVCaptureFlashMode _currentFlashMode;
 
         #endregion
 
@@ -82,6 +82,19 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             base.ViewDidLayoutSubviews();
             cameraPreveiwLayer.Frame = cameraRootView.Bounds;
         }
+
+        public override void ViewWillTransitionToSize(CGSize toSize, IUIViewControllerTransitionCoordinator coordinator)
+        {
+            base.ViewWillTransitionToSize(toSize, coordinator);
+
+            var devOre = UIDevice.CurrentDevice.Orientation;
+
+            if (cameraPreveiwLayer.Connection != null)
+                cameraPreveiwLayer.Connection.VideoOrientation = (AVCaptureVideoOrientation)devOre;
+
+            cameraPreveiwLayer.Frame = new CGRect(0, 0, toSize.Width, toSize.Height + 20);
+            cameraRootView.Frame = new CGRect(0, 0, toSize.Width, toSize.Height + 20);
+        }
         #endregion
 
         #region Events
@@ -122,30 +135,30 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             cameraRootView.AddSubview(shutterButton);
             shutterButton.SetBackgroundImage(new UIImage(SHUTTER), UIControlState.Normal);
             shutterButton.TranslatesAutoresizingMaskIntoConstraints = false;
-            shutterButton.Layer.CornerRadius = 50;
+            shutterButton.Layer.CornerRadius = FLOAT_BUTTON_SIZE;
             shutterButton.HeightAnchor.ConstraintEqualTo(100).Active = true;
             shutterButton.WidthAnchor.ConstraintEqualTo(100).Active = true;
             shutterButton.BottomAnchor.ConstraintEqualTo(cameraRootView.BottomAnchor, -10).Active = true;
             shutterButton.CenterXAnchor.ConstraintEqualTo(cameraRootView.CenterXAnchor).Active = true;
 
-            switchCameraButton = new UIButton() { BackgroundColor = UIColor.Black, Alpha = 0.5F, TintColor = UIColor.White };
+            switchCameraButton = new UIButton() { BackgroundColor = new UIColor(0, 0, 0, 0.5F), TintColor = UIColor.White };
             cameraRootView.AddSubview(switchCameraButton);
             _ = switchCameraButton.SetInsideImage(SWITCH_CAMERA);
             switchCameraButton.TranslatesAutoresizingMaskIntoConstraints = false;
-            switchCameraButton.Layer.CornerRadius = 25;
-            switchCameraButton.HeightAnchor.ConstraintEqualTo(shutterButton.HeightAnchor, 0.5F).Active = true;
-            switchCameraButton.WidthAnchor.ConstraintEqualTo(shutterButton.WidthAnchor, 0.5F).Active = true;
+            switchCameraButton.Layer.CornerRadius = FLOAT_BUTTON_CORNER_RADIUS;
+            switchCameraButton.HeightAnchor.ConstraintEqualTo(FLOAT_BUTTON_SIZE).Active = true;
+            switchCameraButton.WidthAnchor.ConstraintEqualTo(FLOAT_BUTTON_SIZE).Active = true;
             switchCameraButton.CenterYAnchor.ConstraintEqualTo(shutterButton.CenterYAnchor).Active = true;
             switchCameraButton.LeadingAnchor.ConstraintEqualTo(shutterButton.TrailingAnchor, 20).Active = true;
 
-            flashButton = new UIButton() { BackgroundColor = UIColor.Black, Alpha = 0.5F, TintColor = UIColor.White, ContentMode = UIViewContentMode.Center };
+            flashButton = new UIButton() { BackgroundColor = new UIColor(0,0,0,0.5F), TintColor = UIColor.White, ContentMode = UIViewContentMode.Center };
             cameraRootView.AddSubview(flashButton);
             CurrentFlashMode = AVCaptureFlashMode.On;
             flashImageView = flashButton.SetInsideImage(FLASH);
             flashButton.TranslatesAutoresizingMaskIntoConstraints = false;
-            flashButton.Layer.CornerRadius = 25;
-            flashButton.HeightAnchor.ConstraintEqualTo(shutterButton.HeightAnchor, 0.5F).Active = true;
-            flashButton.WidthAnchor.ConstraintEqualTo(shutterButton.HeightAnchor, 0.5F).Active = true;
+            flashButton.Layer.CornerRadius = FLOAT_BUTTON_CORNER_RADIUS;
+            flashButton.HeightAnchor.ConstraintEqualTo(FLOAT_BUTTON_SIZE).Active = true;
+            flashButton.WidthAnchor.ConstraintEqualTo(FLOAT_BUTTON_SIZE).Active = true;
             flashButton.CenterYAnchor.ConstraintEqualTo(shutterButton.CenterYAnchor).Active = true;
             flashButton.TrailingAnchor.ConstraintEqualTo(shutterButton.LeadingAnchor, -20).Active = true;
 
@@ -200,9 +213,9 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             View.AddSubview(addImageButton);
             addImageButton.SetBackgroundImage(new UIImage(ADD_IMAGE), UIControlState.Normal);
             addImageButton.TranslatesAutoresizingMaskIntoConstraints = false;
-            addImageButton.Layer.CornerRadius = 25;
-            addImageButton.HeightAnchor.ConstraintEqualTo(shutterButton.HeightAnchor, 0.5F).Active = true;
-            addImageButton.WidthAnchor.ConstraintEqualTo(shutterButton.HeightAnchor, 0.5F).Active = true;
+            addImageButton.Layer.CornerRadius = FLOAT_BUTTON_CORNER_RADIUS;
+            addImageButton.HeightAnchor.ConstraintEqualTo(FLOAT_BUTTON_SIZE).Active = true;
+            addImageButton.WidthAnchor.ConstraintEqualTo(FLOAT_BUTTON_SIZE).Active = true;
             addImageButton.LeadingAnchor.ConstraintEqualTo(margins.LeadingAnchor).Active = true;
             addImageButton.CenterYAnchor.ConstraintEqualTo(bottomInstructionLabel.CenterYAnchor).Active = true;
             #endregion
@@ -324,9 +337,6 @@ namespace TheListSellerAppXamariniOS.Views.Reels
             if (newDevice == null)
                 return;
 
-            //var captureDevice = AVCaptureDevice.GetDefaultDevice(preferredDeviceType, AVMediaTypes.Video, preferredPosition);
-            //if (captureDevice == null)
-            //    return;
             var session = new AVCaptureSession();
 
             bool layerIsAlreadyInView = cameraRootView.Layer.Sublayers.Any(mn => mn == cameraPreveiwLayer);

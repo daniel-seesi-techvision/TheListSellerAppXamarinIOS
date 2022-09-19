@@ -1,5 +1,6 @@
 ﻿using System;
 using SQLite;
+using TheListSellerAppXamariniOS.Views.Products;
 using TheListSellerAppXamariniOS.Views.Reels;
 
 namespace TheListSellerAppXamariniOS.Data.Database
@@ -12,6 +13,8 @@ namespace TheListSellerAppXamariniOS.Data.Database
         {
             _database = new SQLiteConnection(dbPath);
             _database.CreateTable<Reel>();
+            _database.CreateTable<Product>();
+            _database.CreateTable<ReelLinkedProduct>();
         }
     }
 }

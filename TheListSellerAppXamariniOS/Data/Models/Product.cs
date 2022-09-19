@@ -10,6 +10,8 @@ namespace TheListSellerAppXamariniOS.Views.Products
         public string Designer { get; set; }
         public string Title { get; set; }
         public string ImageUrl { get; set; }
+        [Ignore]
+        public bool IsSelected { get; set; }
     }
 }
 

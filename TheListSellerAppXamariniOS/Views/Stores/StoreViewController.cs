@@ -4,6 +4,9 @@ using CoreGraphics;
 using TheListSellerAppXamariniOS.Views.Reels;
 using UIKit;
 using static TheListSellerAppXamariniOS.Constants.StringConstants;
+using static TheListSellerAppXamariniOS.Constants.Dimensions;
+using TheListSellerAppXamariniOS.DI;
+using TheListSellerAppXamariniOS.Data.Repository;
 
 namespace TheListSellerAppXamariniOS.Views.Store
 {
@@ -12,6 +15,8 @@ namespace TheListSellerAppXamariniOS.Views.Store
         #region Feilds
         UIButton myFeedButton, myProductButton, videoButton;
         UIView sellerInfoRootView, collectionRootView;
+        UILayoutGuide margins;
+        private IDataRepository<Reel> reelRepo;
 
         #endregion
         public StoreViewController() { }
@@ -21,6 +26,7 @@ namespace TheListSellerAppXamariniOS.Views.Store
         public override void ViewDidLoad()
         {
             base.ViewDidLoad();
+            RegisterServices();
             SetupUI();
         }
         public override void ViewDidAppear(bool animated)
@@ -32,6 +38,7 @@ namespace TheListSellerAppXamariniOS.Views.Store
         {
             base.ViewWillAppear(animated);
             SubscribeToEvents();
+            UIApplication.SharedApplication.StatusBarStyle = UIStatusBarStyle.DarkContent;
         }
 
         public override void ViewWillDisappear(bool animated)
@@ -54,12 +61,12 @@ namespace TheListSellerAppXamariniOS.Views.Store
             var button = sender as UIButton;
             if (button.Title(UIControlState.Normal) == "MY FEED")
             {
-                myFeedButton.SetTitleColor(UIColor.Label, UIControlState.Normal);
+                myFeedButton.SetTitleColor(UIColor.Black, UIControlState.Normal);
                 myProductButton.SetTitleColor(UIColor.LightGray, UIControlState.Normal);
             }
             else
             {
-                myProductButton.SetTitleColor(UIColor.Label, UIControlState.Normal);
+                myProductButton.SetTitleColor(UIColor.Black, UIControlState.Normal);
                 myFeedButton.SetTitleColor(UIColor.LightGray, UIControlState.Normal);
             }
 
@@ -67,66 +74,47 @@ namespace TheListSellerAppXamariniOS.Views.Store
         #endregion
 
         #region Methods
+        void RegisterServices()
+        {
+            reelRepo = IoC.Get<IDataRepository<Reel>>();
+        }
+
         void SetupUI()
         {
+            View.BackgroundColor = UIColor.White;
+            margins = View.LayoutMarginsGuide;
+
             #region Nav Control
 
             var titleLabel = new UILabel()
             {
                 Text = MAIN_PAGE_TITLE,
+                TextColor = UIColor.Black,
                 TextAlignment = UITextAlignment.Center,
                 Font = UIFont.SystemFontOfSize(20, UIFontWeight.Semibold)
             };
 
-            var gearImage = UIImage.GetSystemImage("gearshape");
-            var gearButton = new UIButton()
-            {
-                TintColor = UIColor.Label
-            };
-            gearButton.SetBackgroundImage(gearImage,UIControlState.Normal);
+            videoButton = new UIButton();
+            var settingsButton = new UIButton();
+            var inboxButton = new UIButton();
 
-            var videoImage = UIImage.GetSystemImage("video.badge.ellipsis");
-            videoButton = new UIButton()
-            {
-                TintColor = UIColor.Label
-            };
-            videoButton.SetBackgroundImage(videoImage, UIControlState.Normal);
+            View.AddSubviews(titleLabel, videoButton, settingsButton, inboxButton);
 
-            var trayImage = UIImage.GetSystemImage("tray");
-            var trayButton = new UIButton()
-            {
-                TintColor = UIColor.Label
-            };
-            trayButton.SetBackgroundImage(trayImage,UIControlState.Normal);
-            
-            View.AddSubviews(titleLabel,gearButton,videoButton,trayButton);
-
-            View.BackgroundColor = UIColor.SystemBackground;
-            var margins = View.LayoutMarginsGuide;
 
             titleLabel.TranslatesAutoresizingMaskIntoConstraints = false;
-            titleLabel.TopAnchor.ConstraintEqualTo(margins.TopAnchor,10).Active = true;
+            titleLabel.TopAnchor.ConstraintEqualTo(margins.TopAnchor, 10).Active = true;
             titleLabel.CenterXAnchor.ConstraintEqualTo(View.CenterXAnchor).Active = true;
-            titleLabel.WidthAnchor.ConstraintEqualTo(View.WidthAnchor,0.5F).Active = true;
+            titleLabel.WidthAnchor.ConstraintEqualTo(View.WidthAnchor, 0.5F).Active = true;
             titleLabel.HeightAnchor.ConstraintEqualTo(30).Active = true;
 
-            gearButton.TranslatesAutoresizingMaskIntoConstraints = false;
-            gearButton.TopAnchor.ConstraintEqualTo(margins.TopAnchor,10).Active = true;
-            gearButton.LeadingAnchor.ConstraintEqualTo(margins.LeadingAnchor).Active = true;
-            gearButton.WidthAnchor.ConstraintEqualTo(30).Active = true;
-            gearButton.HeightAnchor.ConstraintEqualTo(30).Active = true;
+            SetupNavigationButton(settingsButton, SETTINGS);
+            settingsButton.LeadingAnchor.ConstraintEqualTo(margins.LeadingAnchor).Active = true;
 
-            videoButton.TranslatesAutoresizingMaskIntoConstraints = false;
-            videoButton.TopAnchor.ConstraintEqualTo(margins.TopAnchor, 10).Active = true;
+            SetupNavigationButton(videoButton, VIDEO);
             videoButton.TrailingAnchor.ConstraintEqualTo(margins.TrailingAnchor).Active = true;
-            videoButton.WidthAnchor.ConstraintEqualTo(30).Active = true;
-            videoButton.HeightAnchor.ConstraintEqualTo(30).Active = true;
 
-            trayButton.TranslatesAutoresizingMaskIntoConstraints = false;
-            trayButton.TopAnchor.ConstraintEqualTo(margins.TopAnchor, 10).Active = true;
-            trayButton.TrailingAnchor.ConstraintEqualTo(videoButton.LeadingAnchor,-20).Active = true;
-            trayButton.WidthAnchor.ConstraintEqualTo(30).Active = true;
-            trayButton.HeightAnchor.ConstraintEqualTo(30).Active = true;
+            SetupNavigationButton(inboxButton, INBOX);
+            inboxButton.TrailingAnchor.ConstraintEqualTo(videoButton.LeadingAnchor, -20).Active = true;
 
             #endregion
 
@@ -137,17 +125,17 @@ namespace TheListSellerAppXamariniOS.Views.Store
             sellerInfoRootView.Alpha = 0.5F;
             View.AddSubview(sellerInfoRootView);
             sellerInfoRootView.TranslatesAutoresizingMaskIntoConstraints = false;
-            sellerInfoRootView.TopAnchor.ConstraintEqualTo(titleLabel.BottomAnchor,10).Active = true;
-            sellerInfoRootView.LeadingAnchor.ConstraintEqualTo(View.LeadingAnchor,-10).Active = true;
-            sellerInfoRootView.TrailingAnchor.ConstraintEqualTo(View.TrailingAnchor,10).Active = true;
-            sellerInfoRootView.HeightAnchor.ConstraintEqualTo(View.HeightAnchor,0.35F).Active = true;
+            sellerInfoRootView.TopAnchor.ConstraintEqualTo(titleLabel.BottomAnchor, 10).Active = true;
+            sellerInfoRootView.LeadingAnchor.ConstraintEqualTo(View.LeadingAnchor, -10).Active = true;
+            sellerInfoRootView.TrailingAnchor.ConstraintEqualTo(View.TrailingAnchor, 10).Active = true;
+            sellerInfoRootView.HeightAnchor.ConstraintEqualTo(View.HeightAnchor, 0.35F).Active = true;
 
             myFeedButton = new UIButton()
             {
                 Font = UIFont.SystemFontOfSize(18, UIFontWeight.Bold)
             };
             myFeedButton.SetTitle("MY FEED", UIControlState.Normal);
-            myFeedButton.SetTitleColor(UIColor.Label, UIControlState.Normal);
+            myFeedButton.SetTitleColor(UIColor.Black, UIControlState.Normal);
             sellerInfoRootView.AddSubview(myFeedButton);
             myFeedButton.TranslatesAutoresizingMaskIntoConstraints = false;
             myFeedButton.LeadingAnchor.ConstraintEqualTo(margins.LeadingAnchor).Active = true;
@@ -178,110 +166,100 @@ namespace TheListSellerAppXamariniOS.Views.Store
             #endregion
 
             #region Mission Control
-
-
-            var missionControll = new UIView()
+            var missionControl = new UIView()
             {
-                BackgroundColor = new UIColor(0, 0, 0, 0.5f)
+                BackgroundColor = UIColor.LightGray
             };
-            View.AddSubview(missionControll);
-            missionControll.TranslatesAutoresizingMaskIntoConstraints = false;
-            missionControll.BottomAnchor.ConstraintEqualTo(margins.BottomAnchor, -20).Active = true;
-            missionControll.LeadingAnchor.ConstraintEqualTo(View.LeadingAnchor, 20).Active = true;
-            missionControll.TrailingAnchor.ConstraintEqualTo(View.TrailingAnchor, -20).Active = true;
-            missionControll.HeightAnchor.ConstraintEqualTo(70f).Active = true;
-            missionControll.Layer.CornerRadius = 35F;
-            nfloat buttonSizePercentage = 0.4f;
+            View.AddSubview(missionControl);
+            missionControl.TranslatesAutoresizingMaskIntoConstraints = false;
+            missionControl.BottomAnchor.ConstraintEqualTo(margins.BottomAnchor, -20).Active = true;
+            missionControl.LeadingAnchor.ConstraintEqualTo(View.LeadingAnchor, 20).Active = true;
+            missionControl.TrailingAnchor.ConstraintEqualTo(View.TrailingAnchor, -20).Active = true;
+            missionControl.HeightAnchor.ConstraintEqualTo(70f).Active = true;
+            missionControl.Layer.CornerRadius = 35F;
             nfloat buttonSpacing = 25;
 
-            var home = new UIButton() { TintColor = UIColor.White };
-            home.SetBackgroundImage(UIImage.GetSystemImage("homekit"), UIControlState.Normal);
-
-            var hanger = new UIButton() { TintColor = UIColor.White };
-            hanger.SetBackgroundImage(new UIImage(HANGER), UIControlState.Normal);
+            var home = new UIButton();            
+            var hanger = new UIButton();
+            var package = new UIButton();
+            var requestFeature = new UIButton();
 
             var shutter = new UIButton() { TintColor = UIColor.White };
             shutter.SetBackgroundImage(new UIImage(SHUTTER), UIControlState.Normal);
 
-            var shippingBox = new UIButton() { TintColor = UIColor.White };
-            shippingBox.SetBackgroundImage(UIImage.GetSystemImage("shippingbox"), UIControlState.Normal);
-
-            var requestFeature = new UIButton() { TintColor = UIColor.White };
-            requestFeature.SetBackgroundImage(UIImage.GetSystemImage("arrow.2.squarepath"), UIControlState.Normal);
-
-            missionControll.AddSubviews(home,hanger,shutter, requestFeature,shippingBox);
+            missionControl.AddSubviews(home, hanger, shutter, requestFeature, package);
 
             shutter.TranslatesAutoresizingMaskIntoConstraints = false;
-            shutter.HeightAnchor.ConstraintEqualTo(missionControll.HeightAnchor, 0.9f).Active = true;
-            shutter.WidthAnchor.ConstraintEqualTo(missionControll.HeightAnchor, 0.9f).Active = true;
-            shutter.CenterXAnchor.ConstraintEqualTo(missionControll.CenterXAnchor).Active = true;
-            shutter.CenterYAnchor.ConstraintEqualTo(missionControll.CenterYAnchor).Active = true;
+            shutter.HeightAnchor.ConstraintEqualTo(missionControl.HeightAnchor, 0.9f).Active = true;
+            shutter.WidthAnchor.ConstraintEqualTo(missionControl.HeightAnchor, 0.9f).Active = true;
+            shutter.CenterXAnchor.ConstraintEqualTo(missionControl.CenterXAnchor).Active = true;
+            shutter.CenterYAnchor.ConstraintEqualTo(missionControl.CenterYAnchor).Active = true;
 
-            requestFeature.TranslatesAutoresizingMaskIntoConstraints = false;
-            requestFeature.HeightAnchor.ConstraintEqualTo(missionControll.HeightAnchor, buttonSizePercentage).Active = true;
-            requestFeature.WidthAnchor.ConstraintEqualTo(missionControll.HeightAnchor, buttonSizePercentage).Active = true;
+            SetupMissionControlButton(home, HOME);
+            SetupMissionControlButton(hanger, HANGER);
+            SetupMissionControlButton(package, PACKAGE);
+            SetupMissionControlButton(requestFeature, REQUEST);
+
             requestFeature.LeadingAnchor.ConstraintEqualTo(shutter.TrailingAnchor, buttonSpacing).Active = true;
-            requestFeature.CenterYAnchor.ConstraintEqualTo(missionControll.CenterYAnchor).Active = true;
+            requestFeature.CenterYAnchor.ConstraintEqualTo(missionControl.CenterYAnchor).Active = true;
 
-            shippingBox.TranslatesAutoresizingMaskIntoConstraints = false;
-            shippingBox.HeightAnchor.ConstraintEqualTo(missionControll.HeightAnchor, buttonSizePercentage).Active = true;
-            shippingBox.WidthAnchor.ConstraintEqualTo(missionControll.HeightAnchor, buttonSizePercentage).Active = true;
-            shippingBox.LeadingAnchor.ConstraintEqualTo(requestFeature.TrailingAnchor, buttonSpacing).Active = true;
-            shippingBox.CenterYAnchor.ConstraintEqualTo(missionControll.CenterYAnchor).Active = true;
+            package.LeadingAnchor.ConstraintEqualTo(requestFeature.TrailingAnchor, buttonSpacing).Active = true;
+            package.CenterYAnchor.ConstraintEqualTo(missionControl.CenterYAnchor).Active = true;
 
-            hanger.TranslatesAutoresizingMaskIntoConstraints = false;
-            hanger.HeightAnchor.ConstraintEqualTo(missionControll.HeightAnchor, buttonSizePercentage).Active = true;
-            hanger.WidthAnchor.ConstraintEqualTo(missionControll.HeightAnchor, buttonSizePercentage).Active = true;
             hanger.TrailingAnchor.ConstraintEqualTo(shutter.LeadingAnchor, -buttonSpacing).Active = true;
-            hanger.CenterYAnchor.ConstraintEqualTo(missionControll.CenterYAnchor).Active = true;
+            hanger.CenterYAnchor.ConstraintEqualTo(missionControl.CenterYAnchor).Active = true;
 
-            home.TranslatesAutoresizingMaskIntoConstraints = false;
-            home.HeightAnchor.ConstraintEqualTo(missionControll.HeightAnchor, buttonSizePercentage).Active = true;
-            home.WidthAnchor.ConstraintEqualTo(missionControll.HeightAnchor, buttonSizePercentage).Active = true;
             home.TrailingAnchor.ConstraintEqualTo(hanger.LeadingAnchor, -buttonSpacing).Active = true;
-            home.CenterYAnchor.ConstraintEqualTo(missionControll.CenterYAnchor).Active = true;
+            home.CenterYAnchor.ConstraintEqualTo(missionControl.CenterYAnchor).Active = true;
             #endregion
+        }
+
+        void SetupNavigationButton(UIButton button, string image)
+        {
+            button.TintColor = UIColor.Black;
+            button.TopAnchor.ConstraintEqualTo(margins.TopAnchor, 10).Active = true;
+            SetupButton(button, image);
+        }
+
+        void SetupMissionControlButton(UIButton button, string image)
+        {
+            button.TintColor = UIColor.White;
+            button.HeightAnchor.ConstraintEqualTo(28).Active = true;
+            button.WidthAnchor.ConstraintEqualTo(28).Active = true;
+            SetupButton(button, image);
+        }
+
+        void SetupButton(UIButton button, string image)
+        {
+            var imageView = new UIImage(image);
+            button.SetBackgroundImage(imageView, UIControlState.Normal);
+            button.TranslatesAutoresizingMaskIntoConstraints = false;
+            button.WidthAnchor.ConstraintEqualTo(30).Active = true;
+            button.HeightAnchor.ConstraintEqualTo(30).Active = true;
         }
 
         void SetupReelCollection()
         {
-            #region Feed Collection
             var collectionLayout = new UICollectionViewFlowLayout();
-            collectionLayout.MinimumInteritemSpacing = 1F;
             collectionLayout.SectionInset = new UIEdgeInsets(0, 0, 0, 0);
-            
-            //collectionLayout.ItemSize = new CGSize() { Height = collectionRootView.Frame.Height*0.75f, Width = (collectionRootView.Frame.Width / 2) };
             var collectionView = new UICollectionView(collectionRootView.Bounds, collectionLayout);
 
             // Fetch Reel from database
-            var reels = new List<Reel>()
-            {
-                //new Reel(){ Description = "", ImageUrl = "", LinkedProducts = new () },
-                //new Reel(){ Description = "", ImageUrl = "", LinkedProducts = new () },
-                //new Reel(){ Description = "", ImageUrl = "", LinkedProducts = new () },
-                //new Reel(){ Description = "", ImageUrl = "", LinkedProducts = new () },
-                //new Reel(){ Description = "", ImageUrl = "", LinkedProducts = new () },
-                //new Reel(){ Description = "", ImageUrl = "", LinkedProducts = new () },
-                //new Reel(){ Description = "", ImageUrl = "", LinkedProducts = new () },
-                //new Reel(){ Description = "", ImageUrl = "", LinkedProducts = new () },
-                //new Reel(){ Description = "", ImageUrl = "", LinkedProducts = new () },
-                //new Reel(){ Description = "", ImageUrl = "", LinkedProducts = new () }
-            };
+            var reels = reelRepo.FindAll();
 
             if (reels.Count is 0)
             {
                 var label = new UILabel()
                 {
                     Text = "Your Feed is Still Empty Yet.",
-                    TextColor = UIColor.Label,
-                    Alpha = 0.5F,
-                    Font = UIFont.SystemFontOfSize(18,UIFontWeight.Bold),
+                    TextColor = UIColor.LightGray,
+                    Font = UIFont.SystemFontOfSize(18, UIFontWeight.Bold),
                     TextAlignment = UITextAlignment.Center
                 };
                 collectionRootView.AddSubview(label);
                 label.TranslatesAutoresizingMaskIntoConstraints = false;
                 label.CenterXAnchor.ConstraintEqualTo(collectionRootView.CenterXAnchor).Active = true;
-                label.CenterYAnchor.ConstraintEqualTo(collectionRootView.CenterYAnchor,-50F).Active = true;
+                label.CenterYAnchor.ConstraintEqualTo(collectionRootView.CenterYAnchor, -50F).Active = true;
                 label.WidthAnchor.ConstraintEqualTo(collectionRootView.WidthAnchor).Active = true;
 
                 var paragraph = new UILabel()
@@ -291,13 +269,13 @@ namespace TheListSellerAppXamariniOS.Views.Store
                     Text = "Upload your content by tapping on \"+\" to promote your products and keep customers updated on new arrivals.",
                     TextColor = UIColor.Label,
                     Alpha = 0.5F,
-                    Font = UIFont.SystemFontOfSize(12,UIFontWeight.Thin),
+                    Font = UIFont.SystemFontOfSize(12, UIFontWeight.Thin),
                     TextAlignment = UITextAlignment.Center
                 };
                 collectionRootView.AddSubview(paragraph);
                 paragraph.TranslatesAutoresizingMaskIntoConstraints = false;
                 paragraph.CenterXAnchor.ConstraintEqualTo(collectionRootView.CenterXAnchor).Active = true;
-                paragraph.TopAnchor.ConstraintEqualTo(label.BottomAnchor,10).Active = true;
+                paragraph.TopAnchor.ConstraintEqualTo(label.BottomAnchor, 10).Active = true;
                 paragraph.WidthAnchor.ConstraintEqualTo(collectionRootView.WidthAnchor, 0.7F).Active = true;
                 return;
             }
@@ -308,7 +286,6 @@ namespace TheListSellerAppXamariniOS.Views.Store
             collectionView.ShowsVerticalScrollIndicator = true;
 
             collectionRootView.AddSubview(collectionView);
-            #endregion
         }
 
         void SubscribeToEvents()

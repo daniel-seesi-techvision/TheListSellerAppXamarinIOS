@@ -18,19 +18,19 @@ namespace TheListSellerAppXamariniOS.Data.Repository
         }
 
         #region Get
-        public async Task<IEnumerable<T>> FindAllAsync()
+        public async Task<List<T>> FindAllAsync()
         {
             var results = await Task.FromResult(_context._database.Table<T>().ToList());
             return results;
         }
 
-        public IEnumerable<T> FindAll()
+        public List<T> FindAll()
         {
             var results = _context._database.Table<T>().ToList();
             return results;
         }
 
-        public async Task<IEnumerable<T>> FindByConditionAsync(Expression<Func<T, bool>> expression)
+        public async Task<List<T>> FindByConditionAsync(Expression<Func<T, bool>> expression)
         {
             var results = await Task.FromResult(_context._database.Table<T>().Where(expression).ToList());
             return results;

@@ -2,6 +2,7 @@
 using System.IO;
 using TheListSellerAppXamariniOS.Data.Database;
 using TheListSellerAppXamariniOS.Data.Repository;
+using TheListSellerAppXamariniOS.Services;
 using Unity;
 using Unity.Injection;
 using static TheListSellerAppXamariniOS.Constants.StringConstants;
@@ -13,8 +14,12 @@ namespace TheListSellerAppXamariniOS.DI
         public static UnityContainer Container { get; set; } = new UnityContainer();
         public static void Init()
         {
+            Container.EnableDebugDiagnostic();
             RegisterDbContext();
             Container.RegisterType(typeof(IDataRepository<>), typeof(DataRepository<>));
+            Container.RegisterType<IRequestProvider,RequestProvider>();
+            Container.RegisterType<INetworkService,NetworkService>();
+            Container.RegisterType<IAlertService,AlertService>();
         }
        
         public static T Get<T>(string name = null)
